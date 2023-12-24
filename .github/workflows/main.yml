@@ -3,17 +3,31 @@ name: E2E on Chrome
 on: [push]
 
 jobs:
-  install:
-    runs-on: ubuntu-latest
+  test-answers:
+    runs-on: ubuntu-20.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Checkout 🛎
+        uses: actions/checkout@v3
 
-      - name: Cypress run
-        uses: cypress-io/github-action@v3
+      # https://github.com/cypress-io/github-action
+      - name: Test E2E answers
+        uses: cypress-io/github-action@v4
         with:
-          project: ./site
-          browser: chrome
-          build: yarn build
-          start: yarn start
-          wait-on: "http://localhost:3000"
+          # Cypress dependencies were installed in the previous test step
+          install: false
+          start: 'npm run start:all'
+          wait-on: 'http://localhost:4200'
+          # run every answer spec file, ignore the placeholder files
+          config: 'excludeSpecPattern="**/spec*.cy.ts"'
+
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+      # Test run video was always captured, so this action uses "always()" condition
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: cypress-videos
+          path: cypress/videos
