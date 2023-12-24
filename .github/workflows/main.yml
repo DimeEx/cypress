@@ -3,23 +3,35 @@ name: E2E on Chrome
 on: [push]
 
 jobs:
-  test-answers:
-    runs-on: ubuntu-20.04
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v3
+        with:
+          project: ./site
+          browser: chrome
+          build: yarn build
+          start: yarn start
+          wait-on: "http://localhost:4200"
+  tests:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎
         uses: actions/checkout@v3
 
       # https://github.com/cypress-io/github-action
-      - name: Test E2E answers
+      - name: Test E2E
         uses: cypress-io/github-action@v4
         with:
-          # Cypress dependencies were installed in the previous test step
+          # Cypress dependencies were installed in the previous job
           install: false
-          start: 'npm run start:all'
+          start: 'npm run start'
           wait-on: 'http://localhost:4200'
-          # run every answer spec file, ignore the placeholder files
-          config: 'excludeSpecPattern="**/spec*.cy.ts"'
-
+       
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
